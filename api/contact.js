@@ -25,13 +25,13 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Basic email format check
+    // Simple email regex
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRe.test(email)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    // INSERT into Supabase
+    // Insert into Supabase (optional)
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE) {
       const { error: dbError } = await supabase
         .from('leads')
@@ -39,12 +39,11 @@ module.exports = async (req, res) => {
 
       if (dbError) {
         console.error('Supabase insert error:', dbError);
-        // Continue execution – email should still attempt to send
       }
     }
 
     // -----------------------------
-    // SENDGRID EMAIL (with full logging)
+    // SENDGRID EMAIL (with logging)
     // -----------------------------
     try {
       await sgMail.send({
@@ -55,5 +54,25 @@ module.exports = async (req, res) => {
       });
 
     } catch (sendErr) {
-      // 🔥 This is the critical diagnostic logging we need
-      console.error("SendGrid error (status):", sendErr.code || s
+      // Log full SendGrid error body
+      console.error(
+        "SendGrid error (status):",
+        sendErr.code || sendErr.statusCode || 'unknown'
+      );
+
+      console.error(
+        "SendGrid error response body:",
+        JSON.stringify(sendErr?.response?.body || sendErr, null, 2)
+      );
+
+      throw sendErr; // rethrow to surface error to Vercel logs
+    }
+    // -----------------------------
+
+    return res.status(200).json({ ok: true });
+
+  } catch (err) {
+    console.error('Contact API error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
