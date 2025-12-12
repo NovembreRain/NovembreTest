@@ -4,7 +4,7 @@
 const sgMail = require('@sendgrid/mail');
 const { createClient } = require('@supabase/supabase-js');
 
-// Initialize from env (set these in Vercel Project Settings -> Environment Variables)
+// Initialize from env
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const supabase = createClient(
@@ -25,35 +25,35 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Basic email format check (simple)
+    // Basic email format check
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRe.test(email)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    // INSERT into Supabase (if configured)
-    // If SUPABASE envs are not set this will throw — safe-guard:
+    // INSERT into Supabase
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE) {
-      const { error: dbError } = await supabase.from('leads').insert([
-        { name, email, message }
-      ]);
+      const { error: dbError } = await supabase
+        .from('leads')
+        .insert([{ name, email, message }]);
+
       if (dbError) {
         console.error('Supabase insert error:', dbError);
-        // continue — we still try to send email
+        // Continue execution – email should still attempt to send
       }
     }
 
-    // Send notification email via SendGrid
-    await sgMail.send({
-      to: process.env.NOTIFY_EMAIL || 'you@example.com',
-      from: process.env.SENDGRID_FROM || 'no-reply@example.com',
-      subject: `New website lead from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message || '(none)'}`
-    });
+    // -----------------------------
+    // SENDGRID EMAIL (with full logging)
+    // -----------------------------
+    try {
+      await sgMail.send({
+        to: process.env.NOTIFY_EMAIL || 'you@example.com',
+        from: process.env.SENDGRID_FROM || 'no-reply@example.com',
+        subject: `New website lead from ${name}`,
+        text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message || '(none)'}`
+      });
 
-    return res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error('Contact API error:', err);
-    return res.status(500).json({ error: 'Server error' });
-  }
-};
+    } catch (sendErr) {
+      // 🔥 This is the critical diagnostic logging we need
+      console.error("SendGrid error (status):", sendErr.code || s
