@@ -427,3 +427,50 @@ body {
     background: var(--purple-vivid);
     color: var(--lightning-white);
 }
+
+/* Contact form refinements to match Novembre aesthetic */
+.contact-form {
+    display:flex;
+    gap:0.75rem;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-top:1rem;
+}
+
+.contact-form input,
+.contact-form textarea {
+    padding:0.9rem 1rem;
+    min-width:240px;
+    flex:1 1 240px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+    color: var(--text-light);
+    outline: none;
+    transition: box-shadow 0.15s ease, transform 0.08s ease;
+    font-size: 0.95rem;
+}
+.contact-form input:focus,
+.contact-form textarea:focus {
+    box-shadow: 0 6px 24px rgba(123,44,191,0.12);
+    transform: translateY(-1px);
+    border-color: rgba(157,78,221,0.35);
+}
+
+/* compact spinner text styling (we keep pure text spinner to avoid extra assets) */
+#submit-spinner {
+    font-weight: 700;
+    margin-left: 8px;
+    opacity: 0.9;
+}
+
+/* disabled button look */
+#contact-submit[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* small feedback text */
+#contact-feedback.success { color: #8EE78E; } /* subtle green */
+#contact-feedback.error { color: #FF9AA2; }   /* subtle red */

@@ -138,10 +138,19 @@
       <section class="section" id="contact">
         <h2>Contact</h2>
         <p>Tell me about your project. I reply within one business day.</p>
-        <form class="contact-form">
-          <input type="email" name="email" placeholder="you@example.com" required>
-          <button class="btn" type="submit">Send</button>
+
+        <form id="contact-form" class="contact-form" novalidate>
+          <input type="text" name="name" placeholder="Your name" required aria-label="Your name">
+          <input type="email" name="email" placeholder="you@example.com" required aria-label="Email address">
+          <textarea name="message" placeholder="Short message (what do you need?)" rows="3" aria-label="Message"></textarea>
+      
+          <button class="btn" type="submit" id="contact-submit">
+            <span id="submit-text">Send</span>
+            <span id="submit-spinner" aria-hidden="true" style="display:none"> •••</span>
+          </button>
         </form>
+      
+        <p id="contact-feedback" role="status" aria-live="polite" style="margin-top:0.75rem;color:var(--text-muted);"></p>
       </section>
     </main>
 

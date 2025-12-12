@@ -100,3 +100,76 @@
   });
 })();
   
+// --- Contact form handler (append to script.js) ---
+(function () {
+    // safe init after DOM ready (your file already has ready wrapper; this is independent and safe)
+    function initContactForm() {
+      try {
+        const form = document.getElementById('contact-form');
+        if (!form) return;
+  
+        const submitBtn = document.getElementById('contact-submit');
+        const submitText = document.getElementById('submit-text');
+        const submitSpinner = document.getElementById('submit-spinner');
+        const feedback = document.getElementById('contact-feedback');
+  
+        async function showFeedback(message, type = 'success') {
+          feedback.textContent = message;
+          feedback.classList.remove('success','error');
+          feedback.classList.add(type);
+        }
+  
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+  
+          // Basic client validation
+          const name = form.name.value.trim();
+          const email = form.email.value.trim();
+          const message = form.message ? form.message.value.trim() : '';
+  
+          if (!name || !email) {
+            showFeedback('Please enter name and email.', 'error');
+            return;
+          }
+  
+          // disable UI
+          submitBtn.disabled = true;
+          submitText.textContent = 'Sending';
+          submitSpinner.style.display = 'inline';
+  
+          try {
+            const res = await fetch('/api/contact', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, email, message })
+            });
+  
+            const json = await res.json().catch(() => ({}));
+  
+            if (res.ok) {
+              showFeedback('Thanks — message sent. I will reply within one business day.', 'success');
+              form.reset();
+            } else {
+              const err = json && json.error ? json.error : 'Server error. Try again later.';
+              showFeedback(err, 'error');
+            }
+          } catch (err) {
+            console.error('Network error:', err);
+            showFeedback('Network error. Check your connection and try again.', 'error');
+          } finally {
+            // re-enable UI
+            submitBtn.disabled = false;
+            submitText.textContent = 'Send';
+            submitSpinner.style.display = 'none';
+          }
+        });
+      } catch (e) {
+        console.error('Contact init error:', e);
+      }
+    }
+  
+    // connect with the same ready() approach used above to avoid duplication
+    if (document.readyState !== 'loading') initContactForm();
+    else document.addEventListener('DOMContentLoaded', initContactForm);
+  })();
+  
